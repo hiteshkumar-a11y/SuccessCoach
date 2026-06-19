@@ -1,7 +1,5 @@
-# app.py
-
 import streamlit as st
-from src.chatbot.rag_pipeline import get_answer
+from src.chatbot.assistant import get_answer
 
 st.set_page_config(
     page_title="Student Success Coach",
@@ -9,33 +7,34 @@ st.set_page_config(
     layout="wide"
 )
 
-st.title("🎓 Ask your query")
-st.caption("Ask questions about your academic performance")
+st.title("🎓 Student Success Coach")
+st.caption("Ask questions about your attendance, marks, exams, and academic performance.")
 
 # Sidebar
+st.sidebar.header("Student Details")
+
 student_id = st.sidebar.text_input(
     "Student ID",
-    placeholder="Enter Student ID"
+    placeholder="e.g. Stu1"
 )
 
-# Chat history
+# Initialize chat history
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# Display history
+# Display previous messages
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-# User Input
-if prompt := st.chat_input("Ask a question..."):
+# Chat input
+if prompt := st.chat_input("Ask your question..."):
 
-    # Validate student id
     if not student_id:
-        st.error("Please enter Student ID in sidebar.")
+        st.error("Please enter Student ID in the sidebar.")
         st.stop()
 
-    # Show user message
+    # User message
     st.session_state.messages.append(
         {
             "role": "user",
@@ -46,7 +45,7 @@ if prompt := st.chat_input("Ask a question..."):
     with st.chat_message("user"):
         st.markdown(prompt)
 
-    # Generate answer
+    # Assistant response
     with st.chat_message("assistant"):
 
         with st.spinner("Thinking..."):
@@ -54,9 +53,10 @@ if prompt := st.chat_input("Ask a question..."):
             try:
 
                 response = get_answer(
-                    prompt,
-                    student_id
-                )
+    prompt,
+    student_id,
+    st.session_state.messages
+)
 
                 st.markdown(response)
 

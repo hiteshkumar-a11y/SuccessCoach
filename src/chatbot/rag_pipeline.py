@@ -7,34 +7,24 @@ def get_answer(question, student_id):
 
     student_data = get_student_data(student_id)
 
-    if not student_data:
-        return f"Student ID {student_id} not found."
-
-    if isinstance(student_data, dict) and "error" in student_data:
+    if "error" in student_data:
         return student_data["error"]
 
     prompt = f"""
-{STUDENT_ASSISTANT_PROMPT}
-
 Student Data:
 {student_data}
 
-Student Question:
+Question:
 {question}
-
-Instructions:
-- Answer using only the student data provided.
-- Do not make up information.
-- If information is missing, clearly mention it.
-- Mention attendance when relevant.
-- Mention marks when relevant.
-- Highlight low attendance (below 75%).
-- Give short and actionable suggestions.
 """
 
     response = client.chat.completions.create(
         model=CHAT_MODEL,
         messages=[
+            {
+                "role": "system",
+                "content": "You are a Student Success Coach."
+            },
             {
                 "role": "user",
                 "content": prompt
