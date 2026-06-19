@@ -3,6 +3,7 @@ import gspread
 
 from dotenv import load_dotenv
 from google.oauth2.service_account import Credentials
+import streamlit as st
 
 load_dotenv()
 
@@ -15,10 +16,9 @@ SCOPES = [
 
 try:
 
-    creds = Credentials.from_service_account_file(
-        "credentials/service_account.json",
-        scopes=SCOPES
-    )
+    creds = Credentials.from_service_account_info(
+    st.secrets["gcp_service_account"],
+    scopes=SCOPES)
 
     client = gspread.authorize(creds)
 
