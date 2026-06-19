@@ -79,3 +79,11 @@ if prompt := st.chat_input("Ask your question..."):
                         "content": error_message
                     }
                 )
+if st.button("End Session"):
+# Optional: generate session summary here
+    st.session_state.messages = []
+
+    st.session_state.student_id = ""
+
+    st.rerun()
+

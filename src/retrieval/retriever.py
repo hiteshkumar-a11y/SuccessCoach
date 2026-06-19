@@ -10,6 +10,14 @@ def retrieve_context(question):
 
     docs = results["documents"][0]
 
+    print("\nQUERY:")
+    print(question)
+
+    print("\nRETRIEVED DOCS:")
+    for doc in docs:
+        print(doc[:300])
+        print("-" * 50)
+
     if len(docs) == 0:
         return None
 

@@ -24,7 +24,29 @@ def create_embeddings():
 
             chunks = split_text(text)
 
+            print(
+                f"{file} -> {len(chunks)} chunks"
+            )
+
             all_chunks.extend(chunks)
+
+    try:
+
+        existing = collection.get()
+
+        if existing["ids"]:
+            collection.delete(
+                ids=existing["ids"]
+            )
+
+    except:
+        pass
+
+    print("\n===== SAMPLE CHUNKS =====")
+
+    for chunk in all_chunks[:5]:
+        print(chunk)
+        print("----------------")
 
     collection.add(
         documents=all_chunks,
@@ -37,3 +59,5 @@ def create_embeddings():
     print(
         f"Added {len(all_chunks)} chunks"
     )
+if __name__ == "__main__":
+    create_embeddings()
