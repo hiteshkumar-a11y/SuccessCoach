@@ -2,11 +2,9 @@ import os
 import gspread
 
 from dotenv import load_dotenv
-from google_auth_oauthlib.flow import InstalledAppFlow
+from google.oauth2.service_account import Credentials
 
 load_dotenv()
-
-sheet = None
 
 SHEET_ID = os.getenv("GOOGLE_SHEET_ID")
 
@@ -16,26 +14,31 @@ SCOPES = [
 ]
 
 try:
-    flow = InstalledAppFlow.from_client_secrets_file(
-        "credentials/client_secret.json",
-        SCOPES
-    )
 
-    creds = flow.run_local_server(port=0)
+    creds = Credentials.from_service_account_file(
+        "credentials/service_account.json",
+        scopes=SCOPES
+    )
 
     client = gspread.authorize(creds)
 
-    spreadsheet = client.open_by_key(SHEET_ID)
-
+    spreadsheet = client.open_by_key(
+        SHEET_ID
+    )
     roster_sheet = spreadsheet.worksheet("roster")
     score_sheet = spreadsheet.worksheet("exam_scores")
     attendance_sheet = spreadsheet.worksheet("attendance")
     exam_sheet = spreadsheet.worksheet("exam_schedule")
 
-    print("Google Sheet Connected Successfully")
+    print("Connected:", spreadsheet.title)
 
 except Exception as e:
+
     print("Google Sheet Error:", e)
+
+# spreadsheet = client.open_by_key(SHEET_ID)
+
+
 
 
 def get_student_data(student_id):
