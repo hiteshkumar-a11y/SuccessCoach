@@ -1,10 +1,6 @@
 streamlit
 openai
-chromadb
-pypdf
 python-dotenv
-
-
-
-
-
+gspread
+google-auth
+google-auth-oauthlib
