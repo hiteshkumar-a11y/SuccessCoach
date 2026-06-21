@@ -89,6 +89,60 @@ def show_dashboard():
     st.divider()
 
     # ---------------------------
+# Plan Updates
+# ---------------------------
+
+    if "plan_update_summary" in st.session_state:
+
+        st.warning(
+            f"""
+    🔔 Plan Updated
+
+    {st.session_state['plan_update_summary']}
+    """
+        )
+
+    # ---------------------------
+# Coach Decision Required
+# ---------------------------
+
+    if "coach_decision" in st.session_state:
+
+        decision = st.session_state[
+            "coach_decision"
+        ]
+
+        st.error(
+            "⚠️ Coach Decision Required"
+        )
+
+        st.write(
+            decision["summary"]
+        )
+
+        col1, col2 = st.columns(2)
+
+        with col1:
+
+            if st.button(
+                f"Keep {decision['student_1']} Today"
+            ):
+
+                st.success(
+                    f"{decision['student_1']} selected"
+                )
+
+        with col2:
+
+            if st.button(
+                f"Keep {decision['student_2']} Today"
+            ):
+
+                st.success(
+                    f"{decision['student_2']} selected"
+                )
+
+    # ---------------------------
     # Immediate Action
     # ---------------------------
 
@@ -164,6 +218,27 @@ def show_dashboard():
 
     if st.button("📅 Generate Today's Plan"):
 
+        if "plan_update_summary" in st.session_state:
+            del st.session_state[
+                "plan_update_summary"
+            ]
+
+        if "coach_decision" in st.session_state:
+            del st.session_state[
+                "coach_decision"
+            ]
+
+        plan = generate_daily_plan()
+
+        plan = schedule_plan(
+            plan,
+            calendar_service
+        )
+
+        st.session_state[
+            "daily_plan"
+        ] = plan
+
         plan = generate_daily_plan()
 
         plan = schedule_plan(
@@ -173,9 +248,6 @@ def show_dashboard():
 
         st.session_state["daily_plan"] = plan
 
-        st.success(
-            "Today's coaching schedule generated"
-        )
 
     # ---------------------------
     # Show Plan

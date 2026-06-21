@@ -1,9 +1,24 @@
 from dotenv import load_dotenv
 import os
 
-load_dotenv()
 
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+import streamlit as st
+
+load_dotenv()
+OPENAI_API_KEY = (
+    st.secrets.get("OPENAI_API_KEY")
+    or os.getenv("OPENAI_API_KEY")
+)
+
+GOOGLE_SHEET_ID = (
+    st.secrets.get("GOOGLE_SHEET_ID")
+    or os.getenv("GOOGLE_SHEET_ID")
+)
+
+MEM0_API_KEY = (
+    st.secrets.get("MEM0_API_KEY")
+    or os.getenv("MEM0_API_KEY")
+)
 
 CHAT_MODEL = os.getenv(
     "CHAT_MODEL",

@@ -1,14 +1,20 @@
 import os
 import gspread
-
+import streamlit as st
 from dotenv import load_dotenv
 from google.oauth2.service_account import Credentials
-import streamlit as st
+# import streamlit as st
 from googleapiclient.discovery import build
+from src.replanning.replanner import (
+    replan_if_needed
+)
 
 load_dotenv()
 
-SHEET_ID = os.getenv("GOOGLE_SHEET_ID")
+SHEET_ID = (
+    st.secrets.get("GOOGLE_SHEET_ID")
+    or os.getenv("GOOGLE_SHEET_ID")
+)
 
 
 SCOPES = [
@@ -18,10 +24,13 @@ SCOPES = [
 ]
 
 try:
+    service_account_info = dict(
+        st.secrets["gcp_service_account"]
+    )
 
-    creds = Credentials.from_service_account_file(
-    "credentials/service_account.json",
-    scopes=SCOPES
+    creds = Credentials.from_service_account_info(
+        service_account_info,
+        scopes=SCOPES
 )
 
     client = gspread.authorize(creds)
@@ -143,15 +152,13 @@ def update_student_field(student_id, column_name, value):
 
 from datetime import datetime
 
-from datetime import datetime
-
 
 def add_signal(
-    student_id,
-    signal_type,
-    severity,
-    urgency,
-    coach_summary
+student_id,
+signal_type,
+severity,
+urgency,
+coach_summary
 ):
 
     signal_sheet.append_row(
@@ -164,9 +171,63 @@ def add_signal(
             datetime.now().strftime(
                 "%Y-%m-%d %H:%M:%S"
             ),
-            "FALSE",  # actioned
-            "FALSE",  # planned
-            "",       # planned_date
-            "FALSE"   # calendar_created
+
+            # Existing fields
+            "FALSE",   # actioned
+            "FALSE",   # planned
+            "",        # planned_date
+            "FALSE",   # calendar_created
+
+            # Replanning fields
+            "FALSE",   # replan_required
+            "",        # replan_reason
+            "FALSE",   # coach_decision_required
+            ""         # decision_status
         ]
     )
+
+    try:
+
+        if "daily_plan" not in st.session_state:
+            return
+
+        current_plan = (
+            st.session_state["daily_plan"]
+        )
+
+        new_signal = {
+            "student_id": student_id,
+            "severity": severity,
+            "urgency": urgency,
+            "coach_summary": coach_summary
+        }
+
+        result = replan_if_needed(
+            current_plan,
+            new_signal
+        )
+
+        st.session_state[
+            "daily_plan"
+        ] = result["updated_plan"]
+
+        st.session_state[
+            "plan_update_summary"
+        ] = result["summary"]
+
+        if result.get(
+            "coach_decision_required",
+            False
+        ):
+
+            st.session_state[
+                "coach_decision"
+            ] = result["decision"]
+
+    except Exception as e:
+
+        print(
+            "REPLAN ERROR:",
+            e
+        )
+
