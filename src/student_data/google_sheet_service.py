@@ -30,12 +30,16 @@ try:
     score_sheet = spreadsheet.worksheet("exam_scores")
     attendance_sheet = spreadsheet.worksheet("attendance")
     exam_sheet = spreadsheet.worksheet("exam_schedule")
+    signal_sheet = spreadsheet.worksheet("signal_sheet")
 
     print("Connected:", spreadsheet.title)
 
 except Exception as e:
+    import traceback
 
-    print("Google Sheet Error:", e)
+    print("========== GOOGLE SHEET ERROR ==========")
+    traceback.print_exc()
+    print("========================================")
 
 # spreadsheet = client.open_by_key(SHEET_ID)
 
@@ -126,3 +130,30 @@ def update_student_field(student_id, column_name, value):
     print("Updated successfully")
 
     return True
+
+
+from datetime import datetime
+
+def add_signal(
+student_id,
+signal_type,
+severity,
+urgency,
+coach_summary,
+reason
+):
+
+    signal_sheet.append_row(
+        [
+            student_id,
+            signal_type,
+            severity,
+            urgency,
+            coach_summary,
+            reason,
+            datetime.now().strftime(
+                "%Y-%m-%d %H:%M:%S"
+            ),
+            "FALSE"
+        ]
+    )
