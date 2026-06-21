@@ -8,7 +8,12 @@ signal_type,
 severity,
 urgency,
 reason,
-coach_summary
+coach_summary,
+planned,
+planned_date,
+timestamp,
+actioned,
+calendar_service.py
 ):
 
 
@@ -20,6 +25,11 @@ coach_summary
             urgency,
             coach_summary
             reason,
+            planned,
+            timestamp,
+            actioned,
+            planned_date,
+            calendar_service.py
             datetime.now().strftime(
                 "%Y-%m-%d %H:%M:%S"
             ),

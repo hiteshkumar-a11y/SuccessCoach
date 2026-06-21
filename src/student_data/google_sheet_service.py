@@ -4,14 +4,17 @@ import gspread
 from dotenv import load_dotenv
 from google.oauth2.service_account import Credentials
 import streamlit as st
+from googleapiclient.discovery import build
 
 load_dotenv()
 
 SHEET_ID = os.getenv("GOOGLE_SHEET_ID")
 
+
 SCOPES = [
     "https://www.googleapis.com/auth/spreadsheets",
-    "https://www.googleapis.com/auth/drive"
+    "https://www.googleapis.com/auth/drive",
+    "https://www.googleapis.com/auth/calendar"
 ]
 
 try:
@@ -22,6 +25,12 @@ try:
 )
 
     client = gspread.authorize(creds)
+
+    calendar_service = build(
+    "calendar",
+    "v3",
+    credentials=creds
+)
 
     spreadsheet = client.open_by_key(
         SHEET_ID
@@ -134,13 +143,15 @@ def update_student_field(student_id, column_name, value):
 
 from datetime import datetime
 
+from datetime import datetime
+
+
 def add_signal(
-student_id,
-signal_type,
-severity,
-urgency,
-coach_summary,
-reason
+    student_id,
+    signal_type,
+    severity,
+    urgency,
+    coach_summary
 ):
 
     signal_sheet.append_row(
@@ -150,10 +161,12 @@ reason
             severity,
             urgency,
             coach_summary,
-            reason,
             datetime.now().strftime(
                 "%Y-%m-%d %H:%M:%S"
             ),
-            "FALSE"
+            "FALSE",  # actioned
+            "FALSE",  # planned
+            "",       # planned_date
+            "FALSE"   # calendar_created
         ]
     )

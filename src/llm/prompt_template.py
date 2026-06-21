@@ -374,5 +374,26 @@ Do not repeatedly say:
 Only offer additional help when it naturally improves the conversation.
 
 Answer directly and naturally.
+
+
+Coach Working Hours:
+9:00 AM - 5:00 PM
+
+Session Length:
+30 minutes
+
+Maximum Sessions:
+16
+
+Assign a time slot to each student.
+
+If no slot remains:
+
+Move student to deferred list.
+
+Deferred students must contain:
+- student_id
+- reason
+- day = Tomorrow
 """
 )
