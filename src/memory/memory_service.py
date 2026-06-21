@@ -33,7 +33,17 @@ def get_memory(student_id, query):
         print("RESULT TYPE:", type(results))
         print("RAW RESULTS:", results)
 
-        return str(results)
+        # return str(results)
+        memories = []
+
+        for item in results.get("results", []):
+
+            memory_text = item.get("memory")
+
+            if memory_text:
+                memories.append(memory_text)
+
+        return "\n".join(memories)
 
     except Exception as e:
 

@@ -13,6 +13,9 @@ from src.planning.daily_planner import (
 from src.planning.scheduler import (
     schedule_plan
 )
+from src.briefing.brief_generator import (
+    generate_student_brief
+)
 
 
 def show_dashboard():
@@ -30,6 +33,9 @@ def show_dashboard():
     if df.empty:
         st.success("No active student alerts")
         return
+     
+
+
 
     # ---------------------------
     # Normalize
@@ -131,6 +137,24 @@ def show_dashboard():
 {row.get('coach_summary', row.get('reason', 'No summary available'))}
 """
             )
+
+    st.divider()
+
+    st.header("📋 Student Brief")
+    students = sorted(
+        df["student_id"].unique()
+    )
+    selected_student = st.selectbox(
+        "Select Student",
+        students
+    )
+    if st.button("Generate Brief"):
+
+        brief = generate_student_brief(
+            selected_student
+        )
+
+        st.markdown(brief)          
 
     # ---------------------------
     # Generate Plan
