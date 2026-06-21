@@ -12,3 +12,4 @@ sentence-transformers
 langchain-openai
 langchain-core
 langchain-community
+mem0ai==2.0.7
