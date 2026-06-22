@@ -120,7 +120,13 @@ if st.button("End Session"):
             signal_type=signal["signal_type"],
             severity=signal["severity"],
             urgency=signal["urgency"],
-            reason=signal["reason"]
+            coach_summary=signal.get(
+                "coach_summary",
+                signal.get(
+                    "reason",
+                    ""
+                )
+            )
         )
 
     st.session_state.messages = []
