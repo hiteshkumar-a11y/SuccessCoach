@@ -2,24 +2,27 @@ import pandas as pd
 import streamlit as st
 
 from src.student_data.google_sheet_service import (
-    signal_sheet,
-    calendar_service
+signal_sheet,
+calendar_service
 )
 
 from src.planning.daily_planner import (
-    generate_daily_plan
+generate_daily_plan
 )
 
 from src.planning.scheduler import (
-    schedule_plan
-)
-from src.briefing.brief_generator import (
-    generate_student_brief
+schedule_plan
 )
 
+from src.briefing.brief_generator import (
+generate_student_brief
+)
+
+from src.meeting_notes.notes_ui import (
+show_meeting_notes_form
+)
 
 def show_dashboard():
-
     st.title("🚨 Coach Dashboard")
 
     records = signal_sheet.get_all_records()
@@ -33,13 +36,6 @@ def show_dashboard():
     if df.empty:
         st.success("No active student alerts")
         return
-     
-
-
-
-    # ---------------------------
-    # Normalize
-    # ---------------------------
 
     df["severity"] = (
         df["severity"]
@@ -53,9 +49,9 @@ def show_dashboard():
         .str.upper()
     )
 
-    # ---------------------------
+    # --------------------------------
     # Metrics
-    # ---------------------------
+    # --------------------------------
 
     critical_count = len(
         df[df["severity"] == "CRITICAL"]
@@ -88,29 +84,30 @@ def show_dashboard():
 
     st.divider()
 
-    # ---------------------------
-# Plan Updates
-# ---------------------------
+    # --------------------------------
+    # Replanning Updates
+    # --------------------------------
 
     if "plan_update_summary" in st.session_state:
 
         st.warning(
             f"""
+
+
     🔔 Plan Updated
 
     {st.session_state['plan_update_summary']}
     """
-        )
+    )
 
-    # ---------------------------
-# Coach Decision Required
-# ---------------------------
 
     if "coach_decision" in st.session_state:
 
-        decision = st.session_state[
-            "coach_decision"
-        ]
+        decision = (
+            st.session_state[
+                "coach_decision"
+            ]
+        )
 
         st.error(
             "⚠️ Coach Decision Required"
@@ -124,27 +121,19 @@ def show_dashboard():
 
         with col1:
 
-            if st.button(
+            st.button(
                 f"Keep {decision['student_1']} Today"
-            ):
-
-                st.success(
-                    f"{decision['student_1']} selected"
-                )
+            )
 
         with col2:
 
-            if st.button(
+            st.button(
                 f"Keep {decision['student_2']} Today"
-            ):
+            )
 
-                st.success(
-                    f"{decision['student_2']} selected"
-                )
-
-    # ---------------------------
+    # --------------------------------
     # Immediate Action
-    # ---------------------------
+    # --------------------------------
 
     immediate = df[
         df["urgency"] == "IMMEDIATE"
@@ -152,23 +141,28 @@ def show_dashboard():
 
     if len(immediate) > 0:
 
-        st.subheader("🚨 Immediate Action Required")
+        st.subheader(
+            "🚨 Immediate Action Required"
+        )
 
         for _, row in immediate.iterrows():
 
             st.error(
                 f"""
-**Student:** {row['student_id']}
 
-**Signal:** {row['signal_type']}
 
-{row.get('coach_summary', row.get('reason', 'No summary available'))}
-"""
-            )
+    **Student:** {row['student_id']}
 
-    # ---------------------------
+    **Signal:** {row['signal_type']}
+
+    {row.get('coach_summary', row.get('reason', 'No summary available'))}
+    """
+    )
+
+
+    # --------------------------------
     # High Priority
-    # ---------------------------
+    # --------------------------------
 
     high_priority = df[
         (df["severity"] == "HIGH")
@@ -178,45 +172,34 @@ def show_dashboard():
 
     if len(high_priority) > 0:
 
-        st.subheader("⚠️ High Priority")
+        st.subheader(
+            "⚠️ High Priority"
+        )
 
         for _, row in high_priority.iterrows():
 
             st.warning(
                 f"""
-**Student:** {row['student_id']}
 
-**Signal:** {row['signal_type']}
 
-{row.get('coach_summary', row.get('reason', 'No summary available'))}
-"""
-            )
+    **Student:** {row['student_id']}
+
+    **Signal:** {row['signal_type']}
+
+    {row.get('coach_summary', row.get('reason', 'No summary available'))}
+    """
+    )
+
 
     st.divider()
 
-    st.header("📋 Student Brief")
-    students = sorted(
-        df["student_id"].unique()
-    )
-    selected_student = st.selectbox(
-        "Select Student",
-        students
-    )
-    if st.button("Generate Brief"):
-
-        brief = generate_student_brief(
-            selected_student
-        )
-
-        st.markdown(brief)          
-
-    # ---------------------------
+    # --------------------------------
     # Generate Plan
-    # ---------------------------
+    # --------------------------------
 
-    st.divider()
-
-    if st.button("📅 Generate Today's Plan"):
+    if st.button(
+        "📅 Generate Today's Plan"
+    ):
 
         if "plan_update_summary" in st.session_state:
             del st.session_state[
@@ -239,31 +222,86 @@ def show_dashboard():
             "daily_plan"
         ] = plan
 
-        plan = generate_daily_plan()
-
-        plan = schedule_plan(
-            plan,
-            calendar_service
-        )
-
-        st.session_state["daily_plan"] = plan
-
-
-    # ---------------------------
-    # Show Plan
-    # ---------------------------
-
     if "daily_plan" not in st.session_state:
         return
 
-    plan = st.session_state["daily_plan"]
+    plan = st.session_state[
+        "daily_plan"
+    ]
 
-    # ---------------------------
-    # Today
-    # ---------------------------
+    # --------------------------------
+    # Student Brief Section
+    # --------------------------------
 
     st.divider()
-    st.header("📅 Today's Schedule")
+
+    st.header(
+        "📋 Student Brief"
+    )
+
+    all_students = []
+
+    for student in plan["today"]:
+        all_students.append(student)
+
+    for student in plan["deferred"]:
+        all_students.append(student)
+
+    if len(all_students) > 0:
+
+        student_map = {
+            s["student_id"]: s
+            for s in all_students
+        }
+
+        selected_student = st.selectbox(
+            "Select Scheduled Student",
+            list(student_map.keys())
+        )
+
+        if st.button(
+            "Generate Brief"
+        ):
+
+            selected = student_map[
+                selected_student
+            ]
+
+            st.info(
+                f"""
+
+
+    Meeting Information
+
+    Student:
+    {selected['student_id']}
+
+    Session:
+    {selected['session_type']}
+
+    Time:
+    {selected.get('time_slot', 'Tomorrow')}
+    """
+    )
+
+
+            brief = generate_student_brief(
+                selected_student
+            )
+
+            st.markdown(
+                brief
+            )
+
+    # --------------------------------
+    # Today's Schedule
+    # --------------------------------
+
+    st.divider()
+
+    st.header(
+        "📅 Today's Schedule"
+    )
 
     if len(plan["today"]) == 0:
 
@@ -275,32 +313,42 @@ def show_dashboard():
 
         for student in plan["today"]:
 
-            st.success(
-                f"""
-🕒 {student['time_slot']}
+            with st.expander(
+                f"{student['student_id']} | {student['time_slot']}"
+            ):
 
-👤 Student: {student['student_id']}
+                st.write(
+                    f"Session: {student['session_type']}"
+                )
 
-📋 Session: {student['session_type']}
+                st.write(
+                    f"Reason: {student['reason']}"
+                )
 
-📝 Reason: {student['reason']}
-"""
-            )
+                show_meeting_notes_form(
+                    student["student_id"]
+                )
 
-    # ---------------------------
+    # --------------------------------
     # Deferred
-    # ---------------------------
+    # --------------------------------
 
     if len(plan["deferred"]) > 0:
 
-        st.header("⏳ Deferred To Tomorrow")
+        st.header(
+            "⏳ Deferred To Tomorrow"
+        )
 
         for student in plan["deferred"]:
 
             st.info(
                 f"""
-👤 Student: {student['student_id']}
 
-📝 Reason: {student['reason']}
-"""
-            )
+
+    Student:
+    {student['student_id']}
+
+    Reason:
+    {student['reason']}
+    """
+    )

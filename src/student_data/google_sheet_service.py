@@ -1,20 +1,22 @@
 import os
+import json
 import gspread
 import streamlit as st
+
 from dotenv import load_dotenv
 from google.oauth2.service_account import Credentials
-# import streamlit as st
 from googleapiclient.discovery import build
+
 from src.replanning.replanner import (
     replan_if_needed
 )
 
 load_dotenv()
 
-SHEET_ID = (
-    st.secrets.get("GOOGLE_SHEET_ID")
-    or os.getenv("GOOGLE_SHEET_ID")
-)
+try:
+    SHEET_ID = st.secrets["GOOGLE_SHEET_ID"]
+except Exception:
+    SHEET_ID = os.getenv("GOOGLE_SHEET_ID")
 
 
 SCOPES = [
@@ -24,42 +26,54 @@ SCOPES = [
 ]
 
 try:
+
     service_account_info = dict(
         st.secrets["gcp_service_account"]
     )
 
-    creds = Credentials.from_service_account_info(
-        service_account_info,
-        scopes=SCOPES
+except Exception:
+
+    with open(
+        "credentials/service_account.json",
+        "r"
+    ) as f:
+
+        service_account_info = json.load(f)
+
+creds = Credentials.from_service_account_info(
+    service_account_info,
+    scopes=SCOPES
 )
 
-    client = gspread.authorize(creds)
+client = gspread.authorize(creds)
 
-    calendar_service = build(
+calendar_service = build(
     "calendar",
     "v3",
     credentials=creds
 )
 
-    spreadsheet = client.open_by_key(
-        SHEET_ID
-    )
-    roster_sheet = spreadsheet.worksheet("roster")
-    score_sheet = spreadsheet.worksheet("exam_scores")
-    attendance_sheet = spreadsheet.worksheet("attendance")
-    exam_sheet = spreadsheet.worksheet("exam_schedule")
-    signal_sheet = spreadsheet.worksheet("signal_sheet")
+spreadsheet = client.open_by_key(
+    SHEET_ID
+)
+roster_sheet = spreadsheet.worksheet("roster")
+score_sheet = spreadsheet.worksheet("exam_scores")
+attendance_sheet = spreadsheet.worksheet("attendance")
+exam_sheet = spreadsheet.worksheet("exam_schedule")
+signal_sheet = spreadsheet.worksheet("signal_sheet")
+meeting_notes_sheet = spreadsheet.worksheet(
+    "meeting_notes"
+)
+print("Connected:", spreadsheet.title)
 
-    print("Connected:", spreadsheet.title)
+# except Exception as e:
+#     import traceback
 
-except Exception as e:
-    import traceback
+#     print("========== GOOGLE SHEET ERROR ==========")
+#     traceback.print_exc()
+#     print("========================================")
 
-    print("========== GOOGLE SHEET ERROR ==========")
-    traceback.print_exc()
-    print("========================================")
-
-# spreadsheet = client.open_by_key(SHEET_ID)
+# # spreadsheet = client.open_by_key(SHEET_ID)
 
 
 

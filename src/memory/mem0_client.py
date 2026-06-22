@@ -3,8 +3,8 @@ import os
 import streamlit as st
 
 MEM0_API_KEY = (
-    st.secrets.get("MEM0_API_KEY")
-    or os.getenv("MEM0_API_KEY")
+    os.getenv("MEM0_API_KEY")
+    or st.secrets.get("MEM0_API_KEY")
 )
 
 memory = MemoryClient(
